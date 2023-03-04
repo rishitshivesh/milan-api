@@ -102,7 +102,7 @@ router.post("/ticket/add", isPaymentAuthenticated, async (req, res) => {
 //   return res.json({ msg: "Hello" });
 // });
 
-router.put("/ticket/update/:id", isAuthorized, async (req, res) => {
+router.put("/ticket/update/:id", isAuthenticated, async (req, res) => {
   try {
     const {
       ticketType,
@@ -155,6 +155,57 @@ router.put("/ticket/update/:id", isAuthorized, async (req, res) => {
     const result = await DB.update(updatedTicket, TABLE_NAME);
     // ticketMailer(user, ticket);
     return res.status(200).json(Response(200, "Ticket updated successfully", result));
+  } catch (error) {
+    return res.status(500).json(Response(500, "Internal Server Error", error));
+  }
+});
+router.put("/ticket/issue/:id", isAuthenticated, async (req, res) => {
+  try {
+    const ticket = await DB.get("milan", `ticket#${req.params.id}`, TABLE_NAME);
+    if (!ticket) {
+      return res.status(404).json(Response(404, "Ticket does not exist"));
+    }
+    if (ticket.ticketIssued) {
+      return res.status(400).json(Response(400, "Ticket already issued", ticket));
+    }
+    const newTicketData = {
+      ...ticket,
+      ticketIssued: true
+    };
+    const result = await DB.put(newTicketData, TABLE_NAME);
+    return res.status(200).json(Response(200, "Ticket Issued successfully", result));
+  } catch (error) {
+    return res.status(500).json(Response(500, "Internal Server Error", error));
+  }
+});
+router.get("/payment/:id", isAuthenticated, async (req, res) => {
+  try {
+    const payment = await DB.get("milan", `payment#${req.params.id}`, TABLE_NAME);
+    if (!payment) {
+      return res.status(400).json(Response(400, "Ticket does not exist"));
+    }
+    // const user = await DB.get("milan", `user#${req.params.id}`, TABLE_NAME);
+
+    return res.status(200).json(Response(200, "Ticket fetched successfully", payment));
+  } catch (error) {
+    return res.status(500).json(Response(500, "Internal Server Error", error));
+  }
+});
+router.put("/payment/issue/:id", isAuthenticated, async (req, res) => {
+  try {
+    const ticket = await DB.get("milan", `payment#${req.params.id}`, TABLE_NAME);
+    if (!ticket) {
+      return res.status(404).json(Response(404, "Payment does not exist"));
+    }
+    if (ticket.ticketIssued) {
+      return res.status(400).json(Response(400, "Payment already issued", ticket));
+    }
+    const newTicketData = {
+      ...ticket,
+      ticketIssued: true
+    };
+    const result = await DB.put(newTicketData, TABLE_NAME);
+    return res.status(200).json(Response(200, "Ticket Issued successfully", result));
   } catch (error) {
     return res.status(500).json(Response(500, "Internal Server Error", error));
   }

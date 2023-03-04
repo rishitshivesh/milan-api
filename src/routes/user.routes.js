@@ -105,13 +105,13 @@ router.post("/users/register", async (req, res) => {
     });
 
     // const password = randomString.generate(10);
-    // const pwd = await hash(password);
+    const pwd = await hash(password);
     const newUser = {
       pk: "milan",
       sk: `user#${emailId}`,
       uID,
       emailId,
-      password,
+      password:pwd,
       fullName,
       regNo,
       collegeName,
@@ -166,10 +166,10 @@ router.post("/login", async (req, res) => {
     if (!user) {
       return res.status(400).json(Response(400, "User not found"));
     }
-    // const isMatch = await verifyHash(password, user.password);
-    if (password != user.password) {
-      return res.status(400).json(Response(400, "Invalid credentials"));
-    }
+    const isMatch = await verifyHash(password, user.password);
+    //if (password != user.password) {
+      //return res.status(400).json(Response(400, "Invalid credentials"));
+    //}
     const accessToken = generateToken({
       emailId
     });
